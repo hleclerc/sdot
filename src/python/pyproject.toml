@@ -1,0 +1,8 @@
+[build-system]
+requires = [ "setuptools" ]
+build-backend = "setuptools.build_meta"
+
+[project]
+dependencies = [ "vfs" ]
+name = "sdot"
+version = "2024.01.10.0"
