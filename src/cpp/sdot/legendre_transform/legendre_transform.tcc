@@ -10,11 +10,15 @@
 
 DTP UTP::Ret UTP::transform() {
     using namespace Vfs;
+    Vfs::VecImpl<Svec> nm_dirs;
+    Vfs::VecImpl<Sval> nm_offs;
+    Vfs::VecImpl<Svec> nb_dirs;
+    Vfs::VecImpl<Sval> nb_offs;
 
     //
     if constexpr( nb_dims == 0 ) {
-        TODO;
-        return {};
+        nm_offs.append( m_offs );
+        return { nm_dirs, nm_offs, nb_dirs, nb_offs };
     } else {
         // if there's an equality constraint, we're actually working at most on nb_dims - 1
         if ( Opt<std::pair<Svec,Svec>> p = first_eq_bnd() )
@@ -33,13 +37,9 @@ DTP UTP::Ret UTP::transform() {
             return transform_without_dir( p->first, p->second, true );
 
         // make the new affine functions
-        Vfs::VecImpl<Svec> nm_dirs;
-        Vfs::VecImpl<Sval> nm_offs;
         make_new_affs( nm_dirs, nm_offs, vertex_coords, vertex_cuts);
 
         // make the new boundaries
-        Vfs::VecImpl<Svec> nb_dirs;
-        Vfs::VecImpl<Sval> nb_offs;
         make_new_bnds( nb_dirs, nb_offs, vertex_coords, vertex_cuts );
 
         return { nm_dirs, nm_offs, nb_dirs, nb_offs };
@@ -135,7 +135,7 @@ DTP UTP::Ret UTP::transform_without_dir( Svec pos, Svec dir, bool add_bnd ) {
     // normalization of dir
     dir /= norm_2( dir );
 
-    // simple grahm shmidt to find base
+    // a simple grahm shmidt to find a base
     VecImpl<VecImpl<Sval,nb_dims>,nb_dims-1> base;
     PI dir_to_avoid = argmax( abs( dir ) );
     for( PI i = 0, j = 0; i < nb_dims; ++i ) {
@@ -152,17 +152,18 @@ DTP UTP::Ret UTP::transform_without_dir( Svec pos, Svec dir, bool add_bnd ) {
         }
     }
 
-    P( base );
+    // P( base, pos );
 
     // make new inputs from projection
     using Pvec = VecImpl<Sval,nb_dims-1>;
     Vfs::VecImpl<Pvec> pm_dirs( FromReservationSize(), m_offs.size() );
     Vfs::VecImpl<Sval> pm_offs( FromReservationSize(), m_offs.size() );
     for( PI i = 0; i < m_offs.size(); ++i ) {
-        Pvec pm_dir;
         Svec m_dir = m_dirs[ i ];
+
+        Pvec pm_dir;
         for( PI d = 0; d < nb_dims - 1; ++d )
-            pm_dir[ d ] = sp( m_dir, base[ d ] );
+            pm_dir[ d ] = sp( m_dir - pos, base[ d ] );
         pm_dirs << pm_dir;
 
         pm_offs << m_offs[ i ] - sp( m_dir, pos );
@@ -174,6 +175,7 @@ DTP UTP::Ret UTP::transform_without_dir( Svec pos, Svec dir, bool add_bnd ) {
         Svec b_dir = b_dirs[ i ];
         if ( all( b_dir == dir ) || all( b_dir == -dir ) )
             continue;
+
         Pvec pb_dir;
         for( PI d = 0; d < nb_dims - 1; ++d )
             pb_dir[ d ] = sp( b_dir, base[ d ] );
@@ -192,17 +194,17 @@ DTP UTP::Ret UTP::transform_without_dir( Svec pos, Svec dir, bool add_bnd ) {
     Vfs::VecImpl<Sval> &nb_offs = std::get<3>( plt );
 
     // inverse projection
-    Vfs::VecImpl<Pvec> im_dirs( FromReservationSize(), nm_offs.size() );
+    Vfs::VecImpl<Svec> im_dirs( FromReservationSize(), nm_offs.size() );
     Vfs::VecImpl<Sval> im_offs( FromReservationSize(), nm_offs.size() );
     for( PI i = 0; i < nm_offs.size(); ++i ) {
         Pvec nm_dir = nm_dirs[ i ];
-        Svec im_dir;
         Sval im_off = nm_offs[ i ];
+        Svec im_dir;
         for( PI e = 0; e < nb_dims; ++e ) {
-            Sval v = 0;
+            Sval v = pos[ e ];
             for( PI d = 0; d < nb_dims - 1; ++d ) {
-                v += nm_dir[ e ] * base[ d ][ e ];
-                im_off += nm_dir[ e ] * base[ d ][ e ] * pos[ e ];
+                v += nm_dir[ d ] * base[ d ][ e ];
+                im_off += nm_dir[ d ] * base[ d ][ e ] * pos[ e ];
             }
             im_dir[ e ] = v;
         }
@@ -211,17 +213,17 @@ DTP UTP::Ret UTP::transform_without_dir( Svec pos, Svec dir, bool add_bnd ) {
         im_offs << im_off;
     }
 
-    Vfs::VecImpl<Pvec> ib_dirs( FromReservationSize(), nb_offs.size() );
+    Vfs::VecImpl<Svec> ib_dirs( FromReservationSize(), nb_offs.size() );
     Vfs::VecImpl<Sval> ib_offs( FromReservationSize(), nb_offs.size() );
     for( PI i = 0; i < nb_offs.size(); ++i ) {
         Pvec nb_dir = nb_dirs[ i ];
-        Svec ib_dir;
         Sval ib_off = nb_offs[ i ];
+        Svec ib_dir;
         for( PI e = 0; e < nb_dims; ++e ) {
             Sval v = 0;
             for( PI d = 0; d < nb_dims - 1; ++d ) {
-                v += nb_dir[ e ] * base[ d ][ e ];
-                ib_off += nb_dir[ e ] * base[ d ][ e ] * pos[ e ];
+                v += nb_dir[ d ] * base[ d ][ e ];
+                ib_off += nb_dir[ d ] * base[ d ][ e ] * pos[ e ];
             }
             ib_dir[ e ] = v;
         }
@@ -234,11 +236,11 @@ DTP UTP::Ret UTP::transform_without_dir( Svec pos, Svec dir, bool add_bnd ) {
     if ( add_bnd ) {
         const auto s = sp( dir, pos );
 
-        nb_dirs << dir;
-        nb_offs << s;
+        ib_dirs << dir;
+        ib_offs << s;
 
-        nb_dirs << -dir;
-        nb_offs << -s;
+        ib_dirs << -dir;
+        ib_offs << -s;
     }
 
     return { im_dirs, im_offs, ib_dirs, ib_offs };

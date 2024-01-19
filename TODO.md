@@ -36,9 +36,9 @@ Prop: on cherche le point intérieur en travaillant sur les vertices de diagramm
   * si on a 2 fonctions affines, on prend la direction moyenne
   * si on a 1 fonction affine et un bord, on prend 
 
+# en 1D
 max(-2.0*y_0 - 5.0, 0, 3.0*y_0 - 4.0)
 max(-2.5*y_0, 1.33333333333333*y_0) for -1.0*y_0 <= 2.0, 1.0*y_0 <= 3.0
 
-max(-2.0*y_0 - 5.0, 0, 3.0*y_0 - 4.0)
-max(-2.5*y_0, 1.33333333333333*y_0) for -1.0*y_0 <= 4.0, -1.0*y_1 <= 0.0, 1.0*y_0 <= 1.0, 1.0*y_1 <= 0.0
-max(-4.0*y_0 - 10.0, -4.0*y_0 - 10.0, 0, 0, 1.0*y_0 - 1.33333333333333, 1.0*y_0 - 1.33333333333333)
+# en 2D
+max(-2.5*y_0, 1.33333333333333*y_0) for -1.0*y_0 <= 2.0, -1.0*y_1 <= 0.0, 1.0*y_0 <= 3.0, 1.0*y_1 <= 0.0
