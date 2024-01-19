@@ -3,6 +3,7 @@
 .graph*
 .directory
 .sdot.*
+.sdot_vfs.*
 *.pyc
 __pycache__
 ext/

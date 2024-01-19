@@ -4,7 +4,7 @@ import sdot
 
 class TestConvexFunction(unittest.TestCase):
     def test_1d( self ):
-        # ubounbed
+        # unbounbed
         self.check_transform(
             m_dirs = [ [ -2.0 ], [ +0.0 ], [ +3.0 ] ],
             m_offs = [   +5.0  ,   +0.0  ,   +4.0   ],
@@ -17,11 +17,31 @@ class TestConvexFunction(unittest.TestCase):
         )
 
     def test_2d( self ):
-        #
+        # unbounbed 1d test case in a 2D space
         self.check_transform(
             m_dirs = [ [ -2.0, 0.0 ], [ +0.0, 0.0 ], [ +3.0, 0.0 ] ],
-            m_offs = [        +5.0  ,        +0.0  ,        +4.0   ],
+            m_offs = [   +5.0  ,        +0.0  ,        +4.0   ],
         )
+
+        # 1d test case in a 2D space
+        # max(0) for -1.0*y_0 <= 3.0, 1.0*y_0 <= 4.0
+        # self.check_transform(
+        #     m_dirs = [ [ -3.0, 0.0 ], [ +4.0, 0.0 ] ],
+        #     m_offs = [   +0.0  ,   +0.0   ],
+        # )
+
+        #
+        # self.check_transform(
+        #     m_dirs = [ [ +0.0, +0.0 ] ],
+        #     m_offs = [        +0.0    ],
+        #     b_dirs = [ [ +1.0, +0.0 ], [ -1.0, +0.0 ] ],
+        #     b_offs = [         +0.0  ,         +0.0   ],
+        # )
+
+        # self.check_transform(
+        #     m_dirs = [ [ -2.0, 0.0 ], [ +0.0, 0.0 ], [ +3.0, 0.0 ] ],
+        #     m_offs = [        +5.0  ,        +0.0  ,        +4.0   ],
+        # )
 
         #
         # self.check_transform(
