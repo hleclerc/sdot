@@ -1,5 +1,10 @@
 #pragma once
 
+#include <eigen3/Eigen/Eigenvalues>
+
+#include "../WeightedPointSet_AABB.h"
+#include "../cell_points.h"
+
 #include "legendre_transform.h"
 // #include <gmpxx.h>
 // #include <set>

@@ -2,7 +2,7 @@
 *.egg-info
 .graph*
 .directory
-.sdot_vfs.*
+.sdot.*
 *.pyc
 __pycache__
 ext/
