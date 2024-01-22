@@ -124,23 +124,6 @@ DTP void UTP::for_each_face( const std::function<void( std::array<PI,nb_dims-2> 
 }
 
 DTP void UTP::for_each_edge( const std::function<void( std::array<PI,nb_dims-1> num_cuts, const Vertex *v0, const Vertex *v1 )> &f ) const {
-    //    std::map<std::array<PI,dim-1>,std::vector<const Vertex *>> map;
-    //    for( const Vertex &v : vertices ) {
-    //        for( PI ne = 0; ne < dim; ++ne ) {
-    //            std::array<PI,dim-1> bc;
-    //            for( PI j = 0, o = 0; j < dim; ++j )
-    //                if ( j != ne )
-    //                    bc[ o++ ] = v.num_cuts[ j ];
-    //            std::sort( bc.begin(), bc.end() );
-
-    //            map[ bc ].push_back( &v );
-    //        }
-    //    }
-
-    //    for( const auto &p : map ) {
-    //        ASSERT( p.second.size() == 2 );
-    //        f( p.first, p.second[ 0 ], p.second[ 1 ] );
-    //    }
     for( const Edge &e : edges )
         f( e.num_cuts, vertices.data() + e.vertices[ 0 ], vertices.data() + e.vertices[ 1 ] );
 }
@@ -163,6 +146,7 @@ DTP Point UTP::compute_pos( std::array<PI,nb_dims> num_cuts ) const {
     Point res;
     for( PI i = 0; i < nb_dims; ++i )
         res[ i ] = x[ i ];
+
     return res;
 }
 
@@ -259,6 +243,14 @@ DTP void UTP::cut( PI n_index, const Point &dir, Scalar off ) {
     // all int ?
     if ( ! has_ext )
         return;
+
+    // check dir and off are new. TODO: something more robust
+    for( const Cut &cut : cuts ) {
+        using namespace std;
+        if ( Vfs::norm_2_p2( cut.dir - dir ) < 1e-10 && abs( cut.sp - off ) < 1e-10 )
+            return;
+    }
+
 
     // move vertex to the new positions
     apply_corr( vertices, vertex_corr );

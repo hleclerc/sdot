@@ -325,7 +325,7 @@ DTP void UTP::make_new_bnds( Vfs::VecImpl<Svec> &new_b_dirs, Vfs::VecImpl<Sval> 
     using std::sqrt;
 
     EMat M;
-    EVec V;
+    // EVec V;
     for( PI num_vertex = 0; num_vertex < vertex_coords.size() / nb_dims; ++num_vertex ) {
         const auto *coords = vertex_coords.data() + num_vertex * ( nb_dims + 0 );
         const auto *cuts = vertex_cuts.data() + num_vertex * ( nb_dims + 1 );
@@ -339,7 +339,7 @@ DTP void UTP::make_new_bnds( Vfs::VecImpl<Svec> &new_b_dirs, Vfs::VecImpl<Sval> 
                 for( PI c = 0; c < nb_dims; ++c )
                     M( r, c ) = dir[ c ];
                 M( r, nb_dims ) = -1;
-                V( r ) = 0;
+                // V( r ) = 0;
                 continue;
             }
 
@@ -349,17 +349,19 @@ DTP void UTP::make_new_bnds( Vfs::VecImpl<Svec> &new_b_dirs, Vfs::VecImpl<Sval> 
                 for( PI c = 0; c < nb_dims; ++c )
                     M( r, c ) = bnd[ c ];
                 M( r, nb_dims ) = 0;
-                V( r ) = 0;
+                // V( r ) = 0;
                 continue;
             }
 
             // infnite cut => we say for now that the sum of the coefficients must be == 1
             //  the direction will be corrected in a second phase
             if ( auto ci = inf_cut( cuts[ r ] ) ) {
-                for( PI c = 0; c < nb_dims; ++c )
-                    M( r, c ) = 1;
-                M( r, nb_dims ) = 0;
-                V( r ) = 1;
+                //     for( PI c = 0; c < nb_dims; ++c )
+                //         M( r, c ) = 1;
+                //     M( r, nb_dims ) = 0;
+                //     V( r ) = 1;
+                for( PI c = 0; c <= nb_dims; ++c )
+                    M( r, c ) = 0;
                 continue;
             }
 
@@ -367,9 +369,13 @@ DTP void UTP::make_new_bnds( Vfs::VecImpl<Svec> &new_b_dirs, Vfs::VecImpl<Sval> 
             ERROR( "should not happen" );
         }
 
+
         // solve
         Eigen::FullPivLU<EMat> lu( M );
-        EVec X = lu.solve( V );
+        ASSERT( lu.dimensionOfKernel() >= 1 );
+        //std::cout << lu.kernel() << std::endl;
+        // TODO;
+        EVec X = lu.kernel().col( 0 );
 
         // coeff for normalization
         Sval cnorm = 0;

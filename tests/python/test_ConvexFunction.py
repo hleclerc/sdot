@@ -5,17 +5,18 @@ import sdot
 class TestConvexFunction(unittest.TestCase):
     def test_1d( self ):
         # unbounbed
-        # self.check_transform(
-        #     m_dirs = [ [ -2.0 ], [ +0.0 ], [ +3.0 ] ],
-        #     m_offs = [   +5.0  ,   +0.0  ,   +4.0   ],
-        # )
+        self.check_transform(
+            m_dirs = [ [ -2.0 ], [ +0.0 ], [ +3.0 ] ],
+            m_offs = [   +5.0  ,   +0.0  ,   +4.0   ],
+        )
 
-        # #
-        # self.check_transform(
-        #     m_dirs = [ [ -3.0 ], [ +4.0 ] ],
-        #     m_offs = [   +0.0  ,   +0.0   ],
-        # )
+        #
+        self.check_transform(
+            m_dirs = [ [ -3.0 ], [ +4.0 ] ],
+            m_offs = [   +0.0  ,   +0.0   ],
+        )
 
+    def test_1d_add( self ):
         a = sdot.ConvexFunction( 
             m_dirs = [ [ 1 ] ],
             m_offs = [ 0 ],
@@ -30,6 +31,11 @@ class TestConvexFunction(unittest.TestCase):
 
 
     def test_2d( self ):
+        self.check_transform( 
+            m_dirs = [ [ 0, 0 ], [ -1, 0 ], [ 0, -1 ], [ +1, 0 ], [ 0, +1 ] ], 
+            m_offs = [ 0, 1, 1, 1, 1 ]
+        )
+
         # unbounbed 1d test case in a 2D space
         # self.check_transform(
         #     m_dirs = [ [ -2.0, 0.0 ], [ +0.0, 0.0 ], [ +3.0, 0.0 ] ],
@@ -50,10 +56,10 @@ class TestConvexFunction(unittest.TestCase):
         # )
 
         # 0d test case in a 2D space
-        self.check_transform(
-            m_dirs = [ [ 0.0, +0.0 ] ],
-            m_offs = [   +0.0        ],
-        )
+        # self.check_transform(
+        #     m_dirs = [ [ 0.0, +0.0 ] ],
+        #     m_offs = [   +0.0        ],
+        # )
 
         # 1d test case in a 2D space
         # max(0) for -1.0*y_0 <= 3.0, 1.0*y_0 <= 4.0
@@ -80,6 +86,29 @@ class TestConvexFunction(unittest.TestCase):
         #     m_dirs = [ [ -3.0 ], [ +4.0 ] ],
         #     m_offs = [   +0.0  ,   +0.0   ],
         # )
+
+    def test_2d_from_vals_and_ders( self, n = 5 ):
+        pass
+        # angles = np.linspace( 0, 2 * np.pi, 5, endpoint = False )
+        # b_dirs = [ [ np.cos( a ), np.sin( a ) ] for a in angles ]
+        # b_offs = [ 2.0 for a in angles ]
+
+        # ca = sdot.ConvexFunction.make_approx_from_values_and_derivatives(
+        #     sample_coords = np.random.rand( 2, n ) * 2 - 1,
+        #     f_der = lambda p: [ 2 * p[ 0 ], 0.2 * 2 * p[ 1 ] ],
+        #     f_val = lambda p: p[ 0 ]**2 + 0.2 * p[ 1 ]**2,
+        #     # b_dirs = b_dirs,
+        #     # b_offs = b_offs,
+        # )
+        # ca.write_vtk( "orig.vtk" )
+
+        # lt = ca.legendre_transform()
+        # lt.write_vtk( "lege.vtk" )
+        # print( lt )
+
+        # tl = lt.legendre_transform()
+        # tl.write_vtk( "egel.vtk" )
+
 
 
     # def test_2d_unbounded( self ):
@@ -190,24 +219,3 @@ class TestConvexFunction(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
-# def test_x2( n ):
-#     bnds = [ [ np.cos( a ), np.sin( a ), 2.0 ] for a in np.linspace( 0, 0.5 * np.pi, 5, endpoint = False ) ]
-#     ca = sdot.ConvexFunction.make_approx_from_values_and_derivatives(
-#         sample_coords = np.random.rand( 2, n ) * 2 - 1,
-#         f_der = lambda p: [ 2 * p[ 0 ], 0.2 * 2 * p[ 1 ] ],
-#         f_val = lambda p: p[ 0 ]**2 + 0.2 * p[ 1 ]**2,
-#         bnds = bnds,
-#     )
-#     ca.write_vtk( "orig.vtk" )
-
-#     lt = ca.legendre_transform()
-#     lt.write_vtk( "lega.vtk" )
-
-#     tl = lt.legendre_transform()
-#     tl.write_vtk( "agel.vtk" )
-
-
-# # test_x2( 100 )
-# # test_1D_unb()
-# test_1D_bnd()
-# # test_1D()

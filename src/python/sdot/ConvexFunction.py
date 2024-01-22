@@ -42,7 +42,7 @@ class ConvexFunction:
         # attributes by deduction
         self.nb_dims = self.m_dirs.shape[ 1 ]
 
-    def make_approx_from_values_and_derivatives( sample_coords, f_val, f_der, b_dirs, b_offs ):
+    def make_approx_from_values_and_derivatives( sample_coords, f_val, f_der, b_dirs = None, b_offs = None ):
         m_dirs = []
         m_offs = []
         for num_point in range( sample_coords.shape[ 1 ] ):
