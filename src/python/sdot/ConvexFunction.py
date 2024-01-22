@@ -92,3 +92,108 @@ class ConvexFunction:
 
     def __repr__( self ):
         return self.summary()
+
+    def is_inside_boundaries( self, x_k ):
+        if isinstance( x_k, ( int, float ) ):
+            x_k = [ x_k ]
+        x_k = np.asarray( x_k )
+
+        return self.b_dirs.shape[ 0 ] == 0 or ( self.b_dirs @ x_k - self.b_offs ).max() <= 0
+
+    def __call__( self, x_k ):
+        return self.val( x_k )
+    
+    def val( self, x_k ):
+        if isinstance( x_k, ( int, float ) ):
+            x_k = [ x_k ]
+        x_k = np.asarray( x_k )
+
+        if not self.is_inside_boundaries( x_k ):
+            return float('inf')
+        
+        return ( self.m_dirs @ x_k - self.m_offs ).max()
+
+    def grad( self, x_k ):
+        if isinstance( x_k, ( int, float ) ):
+            x_k = [ x_k ]
+        x_k = np.asarray( x_k )
+
+        if not self.is_inside_boundaries( x_k ):
+            return float('inf')
+
+        k = ( self.m_dirs @ x_k - self.m_offs ).argmax()     
+        return self.m_dirs[ k ]
+
+    def __add__( self, u2 ):
+        u1 = self
+        if isinstance( u2, ConvexFunction ): # addition of two convex functions
+            if u1.nb_dims == u2.nb_dims:
+                nb_dims = u1.nb_dims
+            else:
+                print('Dimensions do not match.')
+
+            new_m_dirs = ( u1.m_dirs[ :, None, : ] + u2.m_dirs[ None, :, : ] ).reshape( ( -1, nb_dims ) )
+            new_m_offs = ( u1.m_dirs[ :, None ] + u2.m_dirs[ None, : ] ).flatten()
+            new_b_dirs = np.block( [ [ u1.b_dirs ], [ u2.b_dirs ] ] )
+            new_b_offs = np.concatenate( [ u1.b_offs, u2.b_offs ] )
+
+            return ConvexFunction( new_m_dirs, new_m_offs, new_b_dirs, new_b_offs )
+            
+        elif isinstance( u2, ( int, float ) ): # addition of a polyhedral function and a scalar
+            return ConvexFunction( u1.m_dirs, u1.m_offs - u2, u1.b_dirs, u1.b_offs )
+        
+        else:
+            raise NotImplementedError( "Can't add Polyhedral and {}".format( type( u2 ) ) )
+        
+    def __radd__( self, scal ):
+        return self.__add__( scal )
+    
+    def __sub__( self, scal ):
+        if isinstance( scal,( int, float ) ): 
+            return ConvexFunction( self.m_dirs, self.m_offs + scal, self.b_dirs, self.b_offs )
+        else:
+            raise NotImplementedError( "Can't substract ConvexFunction from {}".format( type( scal ) ) )
+    
+    def __mul__( self, scal ):
+        if isinstance( scal, ( int, float ) ): 
+            assert( scal >= 0 )
+            return ConvexFunction( scal * self.m_dirs, scal * self.m_offs, self.b_dirs, self.b_offs )
+        else:
+            raise NotImplementedError( "Can't multiply ConvexFunction and {}".format( type( scal ) ) )
+            
+    def __rmul__( self, scal ):
+        return self.__mul__( scal )
+        
+    def __truediv__( self, scal ):
+        if isinstance( scal, ( int, float ) ): 
+            assert( scal > 0 )
+            return ConvexFunction( self.m_dirs / scal, self.m_offs / scal, self.b_dirs, self.b_offs )
+        else:
+            raise NotImplementedError( "Can't divide {} by ConvexFunction.".format( type( scal ) ) )
+
+
+    def __or__(self,u2): 
+        u1 = self
+        if isinstance( u2, ConvexFunction ): # maximum of two PHC functions
+            new_m_dirs = np.block( [ [ u1.m_dirs ], [ u2.m_dirs ] ] )
+            new_m_offs = np.concatenate( [ u1.m_offs, u2.m_offs ] )
+            new_b_dirs = np.block( [ [ u1.b_dirs ], [ u2.b_dirs ] ] )
+            new_b_offs = np.concatenate( [ u1.b_offs,u2.b_offs ] )
+            return ConvexFunction( new_m_dirs, new_m_offs, new_b_dirs, new_b_offs )
+            
+        elif isinstance(u2,(int,float)): # addition of a polyhedral function and a scalar
+            return u1.__or__( ConvexFunction( np.zero( [ 1, u1.nb_dims ] ), [ -u2 ] ) )
+        
+        else:
+            raise NotImplementedError( "Can't take the maximum of ConvexFunction and {}".format( type( u2 ) ) )
+        
+    def __ror__( self, scal ):
+        return self.__or__( scal )
+
+
+    def __xor__( self, u2 ): # inf-convolution of two PHC functions
+        if isinstance( u2, ConvexFunction ):
+            return ( self.legendre_transform() + u2.legendre_transform() ).legendre_transform()
+            
+        else:
+            raise NotImplementedError("Can't take the inf-convolution of ConvexFunction and {}".format(type(u2)))
